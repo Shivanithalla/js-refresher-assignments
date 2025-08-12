@@ -15,50 +15,77 @@ function fetchUserData() {
         .catch(error => console.error('Error:', error));
 }
 
-// async function fetchUserDataAsync() {
-//     // TODO: Implement using async/await with try/catch
-// }
+async function fetchUserDataAsync() {
+    try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/users/1');
+        const data = await response.json();
+        console.log('User data:', data.name);
+        return data;
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
 // 2. Multiple Async Operations
 // TODO: Create async function that fetches user and their posts
 async function fetchUserWithPosts(userId) {
-    // TODO: Fetch user data from https://jsonplaceholder.typicode.com/users/${userId}
-    // TODO: Fetch user's posts from https://jsonplaceholder.typicode.com/posts?userId=${userId}
-    // TODO: Return combined object { user, posts }
-    // Use try/catch for error handling
+    try {
+        const userResponse = await fetch(https://jsonplaceholder.typicode.com/users/${userId});
+        const user = await userResponse.json();
+
+        const postsResponse = await fetch(https://jsonplaceholder.typicode.com/posts?userId=${userId});
+        const posts = await postsResponse.json();
+
+        return { user, posts };
+    } catch (error) {
+        console.error('Error fetching user or posts:', error);
+        return null;
+    }
 }
 
 // 3. Parallel vs Sequential Execution
 // TODO: Implement both approaches
 async function sequentialFetch() {
-    // TODO: Fetch 3 users sequentially (one after another)
-    // URLs: /users/1, /users/2, /users/3
     const startTime = Date.now();
-    
-    // YOUR CODE HERE
-    
+    const user1 = await fetch('https://jsonplaceholder.typicode.com/users/1').then(res => res.json());
+    const user2 = await fetch('https://jsonplaceholder.typicode.com/users/2').then(res => res.json());
+    const user3 = await fetch('https://jsonplaceholder.typicode.com/users/3').then(res => res.json());
+    console.log('Sequential users:', user1.name, user2.name, user3.name);
     const endTime = Date.now();
-    console.log(`Sequential time: ${endTime - startTime}ms`);
+    console.log(Sequential time: ${endTime - startTime}ms);
 }
 
 async function parallelFetch() {
-    // TODO: Fetch 3 users in parallel using Promise.all
     const startTime = Date.now();
-    
-    // YOUR CODE HERE
-    
+    const urls = [
+        'https://jsonplaceholder.typicode.com/users/1',
+        'https://jsonplaceholder.typicode.com/users/2',
+        'https://jsonplaceholder.typicode.com/users/3'
+    ];
+    const fetches = urls.map(url => fetch(url).then(res => res.json()));
+    const [user1, user2, user3] = await Promise.all(fetches);
+    console.log('Parallel users:', user1.name, user2.name, user3.name);
     const endTime = Date.now();
-    console.log(`Parallel time: ${endTime - startTime}ms`);
+    console.log(Parallel time: ${endTime - startTime}ms);
 }
 
 // 4. Error Handling Patterns
 // TODO: Complete this function with proper error handling
 async function robustDataFetch(url) {
-    // TODO: Try to fetch data with multiple fallback strategies
-    // 1. Try primary URL
-    // 2. If fails, try backup URL: url + '?backup=true'
-    // 3. If both fail, return default object: { error: 'Data unavailable' }
-    // Use try/catch blocks appropriately
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Primary failed');
+        return await response.json();
+    } catch (error1) {
+        console.warn('Primary failed, trying backup...');
+        try {
+            const responseBackup = await fetch(url + '?backup=true');
+            if (!responseBackup.ok) throw new Error('Backup failed');
+            return await responseBackup.json();
+        } catch (error2) {
+            return { error: 'Data unavailable' };
+        }
+    }
 }
 
 // 5. Async/Await with Array Methods
@@ -66,56 +93,108 @@ const userIds = [1, 2, 3, 4, 5];
 
 // TODO: Implement async function that processes array of IDs
 async function processUserIds(ids) {
-    // TODO: For each ID, fetch user data and extract just name and email
-    // Return array of processed users
-    // Handle any fetch errors gracefully
+    const results = await Promise.all(ids.map(async id => {
+        try {
+            const response = await fetch(https://jsonplaceholder.typicode.com/users/${id});
+            const user = await response.json();
+            return { name: user.name, email: user.email };
+        } catch (e) {
+            return { name: 'Unknown', email: 'N/A' };
+        }
+    }));
+    return results;
 }
 
 // 6. Custom Promise with Async/Await
 // TODO: Create a function that simulates async operation
 function delay(ms) {
-    // TODO: Return a Promise that resolves after ms milliseconds
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// TODO: Use the delay function in an async function
 async function countdownTimer(seconds) {
-    // TODO: Count down from 'seconds' to 0, logging each number
-    // Wait 1 second between each count using your delay function
+    for (let i = seconds; i >= 0; i--) {
+        console.log(i);
+        await delay(1000);
+    }
+    console.log('Done!');
 }
 
 // 7. Advanced: Race Conditions and Timeouts
 // TODO: Implement fetch with timeout
 async function fetchWithTimeout(url, timeoutMs = 5000) {
-    // TODO: Race between fetch and timeout
-    // If timeout wins, throw error "Request timeout"
-    // Use Promise.race()
+    const timeout = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), timeoutMs);
+    });
+    const fetchPromise = fetch(url).then(res => res.json());
+    return Promise.race([fetchPromise, timeout]);
 }
 
 // 8. Async Generators (Advanced)
 // TODO: Create async generator that yields data progressively
 async function* dataStream() {
-    // TODO: Yield user data one by one with 1-second delays
-    // Fetch users 1-5 from jsonplaceholder API
-    // Use yield to return each user
+    for (let i = 1; i <= 5; i++) {
+        const response = await fetch(https://jsonplaceholder.typicode.com/users/${i});
+        const user = await response.json();
+        yield user;
+        await delay(1000);
+    }
 }
 
 // 9. Error Recovery Patterns
 // TODO: Implement retry logic
 async function fetchWithRetry(url, maxRetries = 3) {
-    // TODO: Try to fetch URL, retry up to maxRetries times if it fails
-    // Wait longer between each retry (exponential backoff)
-    // If all retries fail, throw the last error
+    let attempts = 0;
+    let lastError;
+
+    while (attempts < maxRetries) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed');
+            return await response.json();
+        } catch (error) {
+            lastError = error;
+            attempts++;
+            const wait = 2 ** attempts * 100; // exponential backoff
+            console.log(Retrying in ${wait}ms...);
+            await delay(wait);
+        }
+    }
+
+    throw lastError;
 }
+
 
 // 10. Real-world Scenario
 // TODO: Build a complete data processing pipeline
 async function buildUserReport() {
-    // TODO: 
-    // 1. Fetch all users
-    // 2. For each user, fetch their posts
-    // 3. Calculate statistics: total posts, average posts per user
-    // 4. Handle errors gracefully
-    // 5. Return formatted report object
+    try {
+        const usersResponse = await fetch('https://jsonplaceholder.typicode.com/users');
+        const users = await usersResponse.json();
+
+        const postsResponse = await fetch('https://jsonplaceholder.typicode.com/posts');
+        const posts = await postsResponse.json();
+
+        const report = users.map(user => {
+            const userPosts = posts.filter(p => p.userId === user.id);
+            return {
+                name: user.name,
+                totalPosts: userPosts.length
+            };
+        });
+
+        const totalPosts = posts.length;
+        const avgPosts = totalPosts / users.length;
+
+        return {
+            totalUsers: users.length,
+            totalPosts,
+            avgPostsPerUser: avgPosts.toFixed(2),
+            report
+        };
+    } catch (error) {
+        console.error('Failed to build report:', error);
+        return { error: 'Could not generate report' };
+    }
 }
 
 // Testing Functions (uncomment after completing TODOs):
